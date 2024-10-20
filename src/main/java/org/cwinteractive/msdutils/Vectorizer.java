@@ -27,10 +27,12 @@ public class Vectorizer {
         String[] tokens = tokenizer.getTokens(document);
         for(String token: tokens) {
             Integer index = dictionary.getTermIndex(token);
-            if(index != null) {
-                vector.setEntry(index, 1);
-            } else {
-                vector.addToEntry(index, 1);
+            if (index != null) {
+                if (isBinary) {
+                    vector.setEntry(index, 1);
+                } else {
+                    vector.addToEntry(index, 1);
+                }
             }
         }
         return vector;
