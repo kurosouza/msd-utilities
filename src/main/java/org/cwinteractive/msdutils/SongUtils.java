@@ -1,5 +1,6 @@
 package org.cwinteractive.msdutils;
 
+import org.apache.commons.math3.linear.RealMatrix;
 import org.cwinteractive.msdutils.models.Song;
 
 import java.io.*;
@@ -56,6 +57,13 @@ public class SongUtils {
                 String[] splitTermCounts = chunk.split(":");
                 String term = terms.get(Integer.valueOf(splitTermCounts[0]));
                 Integer freq = Integer.valueOf(splitTermCounts[1]);
+
+                StringBuilder songTextBuilder = new StringBuilder();
+                // append previous song text - so that we do not lose it
+                songTextBuilder.append(song.getSongText());
+                songTextBuilder.append((term + " ").repeat(freq));
+                song.setSongText(songTextBuilder.toString());
+
                 termCounts.put(term, freq);
             }
             song.setWords(termCounts);
@@ -65,4 +73,39 @@ public class SongUtils {
         return songs;
     }
 
+    public static TFIDFVectorizer getTFIDFVectorizer(List<String> corpus) throws IOException {
+        TermDictionary termDictionary = new TermDictionary();
+        SimpleTokenizer tokenizer = new SimpleTokenizer();
+
+        List<String> terms = SongUtils.getDatasetTerms();
+
+        for(String doc : corpus) {
+            String[] tokens = tokenizer.getTokens(doc);
+            termDictionary.addTerms(tokens);
+        }
+
+        TFIDFVectorizer tfidfVectorizer = new TFIDFVectorizer(termDictionary, tokenizer);
+
+        return tfidfVectorizer;
+    }
+
+    public static Vectorizer getVectorizer(int start, int end, boolean isBinary) throws IOException {
+        TermDictionary termDictionary = new TermDictionary();
+        SimpleTokenizer tokenizer = new SimpleTokenizer();
+
+        List<String> terms = SongUtils.getDatasetTerms();
+
+        List<String> songsSlice = SongUtils.getSliceOfDatasetSongs(start, end);
+        List<String> songTexts = SongUtils.getSongsInSlice(songsSlice).stream()
+                .map(Song::getSongText).toList();
+
+        for(String doc : songTexts) {
+            String[] tokens = tokenizer.getTokens(doc);
+            termDictionary.addTerms(tokens);
+        }
+
+        Vectorizer vectorizer = new Vectorizer(termDictionary, tokenizer, isBinary);
+
+        return vectorizer;
+    }
 }

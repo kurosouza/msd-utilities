@@ -11,6 +11,8 @@ public class Song {
     private Integer year;
     private Map<String, Integer> words = new HashMap<>();
 
+    private String songText = new String();
+
     public Song() {}
 
     // getters and setters
@@ -61,6 +63,14 @@ public class Song {
 
     public void setWords(Map<String, Integer> words) {
         this.words = words;
+    }
+
+    public String getSongText() {
+        return songText;
+    }
+
+    public void setSongText(String songText) {
+        this.songText = songText;
     }
 
     public String toDocument() {
