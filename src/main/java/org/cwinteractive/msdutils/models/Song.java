@@ -10,6 +10,7 @@ public class Song {
     private String artist;
     private Integer year;
     private Map<String, Integer> words = new HashMap<>();
+    private double[] tfidfVec;
 
     private String songText = new String();
 
@@ -71,6 +72,14 @@ public class Song {
 
     public void setSongText(String songText) {
         this.songText = songText;
+    }
+
+    public double[] getTfidfVec() {
+        return tfidfVec;
+    }
+
+    public void setTfidfVec(double[] tfidfVec) {
+        this.tfidfVec = tfidfVec;
     }
 
     public String toDocument() {

@@ -1,0 +1,31 @@
+private static void analyzeSongs() throws FileNotFoundException {
+        TermDictionary termDictionary = new TermDictionary();
+        SimpleTokenizer tokenizer = new SimpleTokenizer();
+
+        List<String> terms = SongUtils.getDatasetTerms();
+
+        List<String> songsSlice = SongUtils.getSliceOfDatasetSongs(1, 5);
+        List<String> songTexts = SongUtils.getSongsInSlice(songsSlice).stream()
+                .map(Song::getSongText).toList();
+
+        for(String doc : songTexts) {
+            String[] tokens = tokenizer.getTokens(doc);
+            termDictionary.addTerms(tokens);
+        }
+
+        Vectorizer vectorizer = new Vectorizer(termDictionary, tokenizer, false);
+        RealMatrix counts = vectorizer.getCountMatrix(songTexts);
+        System.out.println("Song counts matrix:");
+        System.out.println(counts.getSubMatrix(0, 4, 0, 20));
+
+        Vectorizer binvectorizer = new Vectorizer(termDictionary, tokenizer, true);
+        RealMatrix binCounts = vectorizer.getCountMatrix(songTexts);
+        System.out.println("Song bincounts matrix:");
+        System.out.println(binCounts.getSubMatrix(0, 4, 0, 20));
+
+        TFIDFVectorizer tfidfVectorizer = new TFIDFVectorizer(termDictionary, tokenizer);
+        RealMatrix tfidf = tfidfVectorizer.getTFIDF(songTexts);
+
+        System.out.println("Song tfidf matrix");
+        System.out.println(tfidf.getSubMatrix(0, 4, 0, 20));
+    }
