@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 
 import java.io.*;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 public class Main {
@@ -33,32 +34,23 @@ public class Main {
         return lines;
     }
 
-    private static List<Song> analyzeSongsWithLLM() throws FileNotFoundException, IOException {
-
-        LOG.debug("Loading songs ..");
-        List<String> songsSlice = SongUtils.getSliceOfDatasetSongs(0, 5);
-        List<Song> songs = SongUtils.getSongsInSlice(songsSlice);
-        List<String> songTexts = songs.stream()
-                .map(Song::getSongText).toList();
-        LOG.debug("Songs data loaded.");
-
+    private static List<Song> analyzeSongsWithLLM(List<Song> songs, Map<String, List<String>> songsMetadata) throws FileNotFoundException, IOException {
         LOG.debug("Embedding values are being computed ..");
-
-        for(int i = 0; i < songs.size(); i++) {
-            Embedding embedding = llmVectorizer.getEmbedding(songs.get(i).getSongText());
+        for(Song song : songs) {
+            Embedding embedding = llmVectorizer.getEmbedding(song.getSongText());
             double[] embeddings_double_values = IntStream.range(0, embedding.vector().length).mapToDouble(j -> embedding.vector()[j]).toArray();
-            songs.get(i).setTfidfVec(embeddings_double_values);
+            song.setTfidfVec(embeddings_double_values);
         }
         LOG.debug("Songs updated with scores.");
 
         return songs;
     }
 
-    private static List<Song> analyzeSongs() throws FileNotFoundException, IOException {
+    private static List<Song> analyzeSongs(Map<String, List<String>> songsMetadata) throws FileNotFoundException, IOException {
 
         LOG.debug("Loading songs ..");
         List<String> songsSlice = SongUtils.getSliceOfDatasetSongs(0, 5);
-        List<Song> songs = SongUtils.getSongsInSlice(songsSlice);
+        List<Song> songs = SongUtils.getSongsInSlice(songsSlice, songsMetadata);
         List<String> songTexts = songs.stream()
                 .map(Song::getSongText).toList();
         LOG.debug("Songs data loaded.");
@@ -80,7 +72,14 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Loading dataset ...");
         try {
-            List<Song> songs = analyzeSongsWithLLM();
+            LOG.debug("Loading songs metadata ..");
+            Map<String, List<String>> songsMetadata = SongUtils.loadSongInfo();
+            LOG.debug("Songs metadata loaded.");
+            LOG.debug("Loading songs ..");
+            List<String> songsSlice = SongUtils.getSliceOfDatasetSongs(0, 2000);
+            List<Song> songs = SongUtils.getSongsInSlice(songsSlice, songsMetadata);
+            LOG.debug("Songs data loaded.");
+            List<Song> analyzedSongs = analyzeSongsWithLLM(songs, songsMetadata);
             JsonExporter.export(songs);
             LOG.debug("Song processing completed");
             // Arrays.stream(tfidf.getRow(0)).forEach(i -> System.out.print(i + ", "));
